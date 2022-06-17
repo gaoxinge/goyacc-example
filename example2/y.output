@@ -1,0 +1,247 @@
+state 0 //
+
+    0 $accept: . program
+    2 program: .  [$end, '(', INTEGER, VARIABLE]
+
+    $end      reduce using rule 2 (program)
+    '('       reduce using rule 2 (program)
+    INTEGER   reduce using rule 2 (program)
+    VARIABLE  reduce using rule 2 (program)
+
+    program  goto state 1
+
+state 1 // [$end]
+
+    0 $accept: program .  [$end]
+    1 program: program . statement '\n'
+
+    $end      accept
+    '('       shift, and goto state 6
+    INTEGER   shift, and goto state 5
+    VARIABLE  shift, and goto state 4
+
+    expr       goto state 3
+    statement  goto state 2
+
+state 2 // INTEGER ['\n']
+
+    1 program: program statement . '\n'
+
+    '\n'  shift, and goto state 20
+
+state 3 // INTEGER ['*']
+
+    3 statement: expr .  ['\n']
+    7 expr: expr . '+' expr  // assoc %left, prec 1
+    8 expr: expr . '-' expr  // assoc %left, prec 1
+    9 expr: expr . '*' expr  // assoc %left, prec 2
+   10 expr: expr . '/' expr  // assoc %left, prec 2
+
+    '*'   shift, and goto state 11
+    '+'   shift, and goto state 9
+    '-'   shift, and goto state 10
+    '/'   shift, and goto state 12
+    '\n'  reduce using rule 3 (statement)
+
+state 4 // VARIABLE
+
+    4 statement: VARIABLE . '=' expr
+    6 expr: VARIABLE .  ['*', '+', '-', '/', '\n']
+
+    '*'   reduce using rule 6 (expr)
+    '+'   reduce using rule 6 (expr)
+    '-'   reduce using rule 6 (expr)
+    '/'   reduce using rule 6 (expr)
+    '='   shift, and goto state 18
+    '\n'  reduce using rule 6 (expr)
+
+state 5 // INTEGER
+
+    5 expr: INTEGER .  [')', '*', '+', '-', '/', '\n']
+
+    ')'   reduce using rule 5 (expr)
+    '*'   reduce using rule 5 (expr)
+    '+'   reduce using rule 5 (expr)
+    '-'   reduce using rule 5 (expr)
+    '/'   reduce using rule 5 (expr)
+    '\n'  reduce using rule 5 (expr)
+
+state 6 // '('
+
+   11 expr: '(' . expr ')'
+
+    '('       shift, and goto state 6
+    INTEGER   shift, and goto state 5
+    VARIABLE  shift, and goto state 7
+
+    expr  goto state 8
+
+state 7 // '(' VARIABLE
+
+    6 expr: VARIABLE .  [')', '*', '+', '-', '/', '\n']
+
+    ')'   reduce using rule 6 (expr)
+    '*'   reduce using rule 6 (expr)
+    '+'   reduce using rule 6 (expr)
+    '-'   reduce using rule 6 (expr)
+    '/'   reduce using rule 6 (expr)
+    '\n'  reduce using rule 6 (expr)
+
+state 8 // '(' INTEGER [')']
+
+    7 expr: expr . '+' expr  // assoc %left, prec 1
+    8 expr: expr . '-' expr  // assoc %left, prec 1
+    9 expr: expr . '*' expr  // assoc %left, prec 2
+   10 expr: expr . '/' expr  // assoc %left, prec 2
+   11 expr: '(' expr . ')'
+
+    ')'  shift, and goto state 13
+    '*'  shift, and goto state 11
+    '+'  shift, and goto state 9
+    '-'  shift, and goto state 10
+    '/'  shift, and goto state 12
+
+state 9 // INTEGER '+'
+
+    7 expr: expr '+' . expr  // assoc %left, prec 1
+
+    '('       shift, and goto state 6
+    INTEGER   shift, and goto state 5
+    VARIABLE  shift, and goto state 7
+
+    expr  goto state 17
+
+state 10 // INTEGER '-'
+
+    8 expr: expr '-' . expr  // assoc %left, prec 1
+
+    '('       shift, and goto state 6
+    INTEGER   shift, and goto state 5
+    VARIABLE  shift, and goto state 7
+
+    expr  goto state 16
+
+state 11 // INTEGER '*'
+
+    9 expr: expr '*' . expr  // assoc %left, prec 2
+
+    '('       shift, and goto state 6
+    INTEGER   shift, and goto state 5
+    VARIABLE  shift, and goto state 7
+
+    expr  goto state 15
+
+state 12 // INTEGER '/'
+
+   10 expr: expr '/' . expr  // assoc %left, prec 2
+
+    '('       shift, and goto state 6
+    INTEGER   shift, and goto state 5
+    VARIABLE  shift, and goto state 7
+
+    expr  goto state 14
+
+state 13 // '(' INTEGER ')'
+
+   11 expr: '(' expr ')' .  [')', '*', '+', '-', '/', '\n']
+
+    ')'   reduce using rule 11 (expr)
+    '*'   reduce using rule 11 (expr)
+    '+'   reduce using rule 11 (expr)
+    '-'   reduce using rule 11 (expr)
+    '/'   reduce using rule 11 (expr)
+    '\n'  reduce using rule 11 (expr)
+
+state 14 // INTEGER '/' INTEGER [')']
+
+    7 expr: expr . '+' expr  // assoc %left, prec 1
+    8 expr: expr . '-' expr  // assoc %left, prec 1
+    9 expr: expr . '*' expr  // assoc %left, prec 2
+   10 expr: expr . '/' expr  // assoc %left, prec 2
+   10 expr: expr '/' expr .  [')', '*', '+', '-', '/', '\n']  // assoc %left, prec 2
+
+    ')'   reduce using rule 10 (expr)
+    '*'   reduce using rule 10 (expr)
+    '+'   reduce using rule 10 (expr)
+    '-'   reduce using rule 10 (expr)
+    '/'   reduce using rule 10 (expr)
+    '\n'  reduce using rule 10 (expr)
+
+state 15 // INTEGER '*' INTEGER [')']
+
+    7 expr: expr . '+' expr  // assoc %left, prec 1
+    8 expr: expr . '-' expr  // assoc %left, prec 1
+    9 expr: expr . '*' expr  // assoc %left, prec 2
+    9 expr: expr '*' expr .  [')', '*', '+', '-', '/', '\n']  // assoc %left, prec 2
+   10 expr: expr . '/' expr  // assoc %left, prec 2
+
+    ')'   reduce using rule 9 (expr)
+    '*'   reduce using rule 9 (expr)
+    '+'   reduce using rule 9 (expr)
+    '-'   reduce using rule 9 (expr)
+    '/'   reduce using rule 9 (expr)
+    '\n'  reduce using rule 9 (expr)
+
+state 16 // INTEGER '-' INTEGER [')']
+
+    7 expr: expr . '+' expr  // assoc %left, prec 1
+    8 expr: expr . '-' expr  // assoc %left, prec 1
+    8 expr: expr '-' expr .  [')', '+', '-', '\n']  // assoc %left, prec 1
+    9 expr: expr . '*' expr  // assoc %left, prec 2
+   10 expr: expr . '/' expr  // assoc %left, prec 2
+
+    ')'   reduce using rule 8 (expr)
+    '*'   shift, and goto state 11
+    '+'   reduce using rule 8 (expr)
+    '-'   reduce using rule 8 (expr)
+    '/'   shift, and goto state 12
+    '\n'  reduce using rule 8 (expr)
+
+state 17 // INTEGER '+' INTEGER [')']
+
+    7 expr: expr . '+' expr  // assoc %left, prec 1
+    7 expr: expr '+' expr .  [')', '+', '-', '\n']  // assoc %left, prec 1
+    8 expr: expr . '-' expr  // assoc %left, prec 1
+    9 expr: expr . '*' expr  // assoc %left, prec 2
+   10 expr: expr . '/' expr  // assoc %left, prec 2
+
+    ')'   reduce using rule 7 (expr)
+    '*'   shift, and goto state 11
+    '+'   reduce using rule 7 (expr)
+    '-'   reduce using rule 7 (expr)
+    '/'   shift, and goto state 12
+    '\n'  reduce using rule 7 (expr)
+
+state 18 // VARIABLE '='
+
+    4 statement: VARIABLE '=' . expr
+
+    '('       shift, and goto state 6
+    INTEGER   shift, and goto state 5
+    VARIABLE  shift, and goto state 7
+
+    expr  goto state 19
+
+state 19 // VARIABLE '=' INTEGER ['*']
+
+    4 statement: VARIABLE '=' expr .  ['\n']
+    7 expr: expr . '+' expr  // assoc %left, prec 1
+    8 expr: expr . '-' expr  // assoc %left, prec 1
+    9 expr: expr . '*' expr  // assoc %left, prec 2
+   10 expr: expr . '/' expr  // assoc %left, prec 2
+
+    '*'   shift, and goto state 11
+    '+'   shift, and goto state 9
+    '-'   shift, and goto state 10
+    '/'   shift, and goto state 12
+    '\n'  reduce using rule 4 (statement)
+
+state 20 // INTEGER '\n'
+
+    1 program: program statement '\n' .  [$end, '(', INTEGER, VARIABLE]
+
+    $end      reduce using rule 1 (program)
+    '('       reduce using rule 1 (program)
+    INTEGER   reduce using rule 1 (program)
+    VARIABLE  reduce using rule 1 (program)
+
